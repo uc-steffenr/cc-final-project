@@ -1,15 +1,5 @@
 from flask import Flask, redirect, render_template, request, url_for
 
-# app = Flask(__name__,
-#             template_folder='templates')
-
-# @app.route('/')
-# def index():
-#     return render_template('index.html')
-
-# if __name__ == '__main__':
-#     app.run(debug=True, host='0.0.0.0', port=8000)
-
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -21,6 +11,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(80), nullable=False)
+    email = db.Column(db.String(80), unique=True, nullable=False)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -28,8 +19,9 @@ def register():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
+        email = request.form["email"]
         # Create a new user object
-        new_user = User(username=username, password=password)
+        new_user = User(username=username, password=password, email=email)
         # Add the user to the database
         db.session.add(new_user)
         db.session.commit()
