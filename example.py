@@ -4,49 +4,23 @@ from pyspark.sql.functions import min as spark_min
 from pyspark.sql.functions import col, month, year, avg, expr, collect_list, udf, stddev
 from pyspark.sql.types import DoubleType
 
-spark = SparkSession.builder \
-    .appName("cc-final-project") \
-    .config("spark.jars", "sqljdbc_12.6/enu/jars/mssql-jdbc-12.6.1.jre8.jar") \
-    .getOrCreate()
+import pyodbc
 
-households_df = spark.read.format("jdbc") \
-    .option("url", "jdbc:sqlserver://cc-final-sql-server.database.windows.net:1433;databaseName=kroger-data") \
-    .option("dbtable", "households") \
-    .option("user", "final-project") \
-    .option("password", "CCPaka!@#") \
-    .option("driver", "com.microsoft.sqlserver.jdbc.SQLServerDriver") \
-    .load()
+# spark = SparkSession.builder \
+#     .appName("cc-final-project") \
+#     .config("spark.jars", "sqljdbc_12.6/enu/jars/mssql-jdbc-12.6.1.jre8.jar") \
+#     .getOrCreate()
 
+connection_string = "Driver={ODBC Driver 18 for SQL Server};Server=tcp:cc-final-sql-server.database.windows.net,1433;Database=kroger-data;Uid=final-project;Pwd={CCPaka!@#};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
 
-# print(households_df)
+conn = pyodbc.connect(connection_string)
+cursor = conn.cursor()
 
-products_df = spark.read.format("jdbc") \
-    .option("url", "jdbc:sqlserver://cc-final-sql-server.database.windows.net:1433;databaseName=kroger-data") \
-    .option("dbtable", "products") \
-    .option("user", "final-project") \
-    .option("password", "CCPaka!@#") \
-    .option("driver", "com.microsoft.sqlserver.jdbc.SQLServerDriver") \
-    .load()
+cursor.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'combined'")
+results1 = cursor.fetchall()
+cursor.execute("SELECT * FROM combined WHERE HSHD_NUM LIKE '%0010%'")
+results = cursor.fetchall()
 
+conn.close()
 
-# print(products_df)
-
-transactions_df = spark.read.format("jdbc") \
-    .option("url", "jdbc:sqlserver://cc-final-sql-server.database.windows.net:1433;databaseName=kroger-data") \
-    .option("dbtable", "transactions") \
-    .option("user", "final-project") \
-    .option("password", "CCPaka!@#") \
-    .option("driver", "com.microsoft.sqlserver.jdbc.SQLServerDriver") \
-    .load()
-
-
-# print(transactions_df)
-
-
-# df = households_df.join(products_df.join(transactions_df))
-
-# df.filter('HSHD_NUM')
-
-df = transactions_df.join(products_df, 'PRODUCT_NUM', 'inner')
-
-df.show()
+print(results)

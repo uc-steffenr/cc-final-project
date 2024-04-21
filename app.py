@@ -7,18 +7,22 @@ from pyspark.sql.functions import min as spark_min
 from pyspark.sql.functions import col, month, year, avg, expr, collect_list, udf, stddev
 from pyspark.sql.types import DoubleType
 
-spark = SparkSession.builder \
-    .appName("cc-final-project") \
-    .config("spark.jars", "sqljdbc_12.6/enu/jars/mssql-jdbc-12.6.1.jre8.jar") \
-    .getOrCreate()
+import pyodbc
 
-df = spark.read.format("jdbc") \
-    .option("url", "jdbc:sqlserver://cc-final-sql-server.database.windows.net:1433;databaseName=kroger-data") \
-    .option("dbtable", "combined") \
-    .option("user", "final-project") \
-    .option("password", "CCPaka!@#") \
-    .option("driver", "com.microsoft.sqlserver.jdbc.SQLServerDriver") \
-    .load()
+connection_string = "Driver={ODBC Driver 18 for SQL Server};Server=tcp:cc-final-sql-server.database.windows.net,1433;Database=kroger-data;Uid=final-project;Pwd={CCPaka!@#};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
+
+# spark = SparkSession.builder \
+#     .appName("cc-final-project") \
+#     .config("spark.jars", "sqljdbc_12.6/enu/jars/mssql-jdbc-12.6.1.jre8.jar") \
+#     .getOrCreate()
+
+# df = spark.read.format("jdbc") \
+#     .option("url", "jdbc:sqlserver://cc-final-sql-server.database.windows.net:1433;databaseName=kroger-data") \
+#     .option("dbtable", "combined") \
+#     .option("user", "final-project") \
+#     .option("password", "CCPaka!@#") \
+#     .option("driver", "com.microsoft.sqlserver.jdbc.SQLServerDriver") \
+#     .load()
 
 
 app = Flask(__name__)
@@ -75,8 +79,19 @@ def success():
 
 @app.route('/part_3')
 def part_3():
-    rows = df.filter(col('HSHD_NUM').contains('0010')).limit(10).collect()
-    columns = df.columns
+    # rows = df.filter(col('HSHD_NUM').contains('0010')).limit(10).collect()
+    # columns = df.columns
+    conn = pyodbc.connect(connection_string)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'combined'")
+    columns = cursor.fetchall()
+    columns = [column[0] for column in columns]
+    cursor.execute("SELECT * FROM combined WHERE HSHD_NUM LIKE '%0010%'")
+    rows = cursor.fetchall()[:10]
+    rows = [list(row) for row in rows]
+    conn.close()
+    
     return render_template('part_3.html', columns=columns, rows=rows)
 
 if __name__ == '__main__':
