@@ -1,4 +1,8 @@
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import max as spark_max
+from pyspark.sql.functions import min as spark_min
+from pyspark.sql.functions import col, month, year, avg, expr, collect_list, udf, stddev
+from pyspark.sql.types import DoubleType
 
 spark = SparkSession.builder \
     .appName("cc-final-project") \
@@ -14,7 +18,7 @@ households_df = spark.read.format("jdbc") \
     .load()
 
 
-print(households_df)
+# print(households_df)
 
 products_df = spark.read.format("jdbc") \
     .option("url", "jdbc:sqlserver://cc-final-sql-server.database.windows.net:1433;databaseName=kroger-data") \
@@ -25,7 +29,7 @@ products_df = spark.read.format("jdbc") \
     .load()
 
 
-print(products_df)
+# print(products_df)
 
 transactions_df = spark.read.format("jdbc") \
     .option("url", "jdbc:sqlserver://cc-final-sql-server.database.windows.net:1433;databaseName=kroger-data") \
@@ -36,5 +40,13 @@ transactions_df = spark.read.format("jdbc") \
     .load()
 
 
-print(transactions_df)
+# print(transactions_df)
 
+
+# df = households_df.join(products_df.join(transactions_df))
+
+# df.filter('HSHD_NUM')
+
+df = transactions_df.join(products_df, 'PRODUCT_NUM', 'inner')
+
+df.show()

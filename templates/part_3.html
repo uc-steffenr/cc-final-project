@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataFrame Display</title>
+    <style>
+        /* Style for the table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+            overflow-x: auto;
+        }
+        /* Style for table headers */
+        th {
+            background-color: #f2f2f2;
+            border: 1px solid #dddddd;
+            padding: 8px;
+            text-align: left;
+        }
+        /* Style for table cells */
+        td {
+            border: 1px solid #dddddd;
+            padding: 8px;
+            text-align: left;
+        }
+        /* Style for odd rows */
+        tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+        /* Responsive table styling */
+        @media screen and (max-width: 600px) {
+            /* Reduce padding on small screens */
+            table, th, td {
+                padding: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>DataFrame Display</h1>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <!-- Loop through column names and generate table headers -->
+                    {% for column in columns %}
+                    <th>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop through rows and generate table rows -->
+                {% for row in rows %}
+                <tr>
+                    <!-- Loop through row values and generate table cells -->
+                    {% for value in row %}
+                    <td>{{ value }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
