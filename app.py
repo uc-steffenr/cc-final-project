@@ -1,12 +1,16 @@
 from flask import Flask, redirect, render_template, request, url_for
 from flask_sqlalchemy import SQLAlchemy
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib import pyplot
+import base64
+import io
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import max as spark_max
 from pyspark.sql.functions import min as spark_min
 from pyspark.sql.functions import col, month, year, avg, expr, collect_list, udf, stddev
 from pyspark.sql.types import DoubleType
-
 import pyodbc
 
 connection_string = "Driver={ODBC Driver 18 for SQL Server};Server=tcp:cc-final-sql-server.database.windows.net,1433;Database=kroger-data;Uid=final-project;Pwd={CCPaka!@#};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
@@ -111,6 +115,40 @@ def part_4():
         conn.close()
         
     return render_template('part_4.html', columns=columns, rows=rows)
+
+
+@app.route('/part_5', methods=['GET', 'POST'])
+def part_5():
+    # Establish connection to the database
+    conn = pyodbc.connect(connection_string)
+    cursor = conn.cursor()
+
+    # Execute query to count occurrences of each HH_SIZE value
+    cursor.execute("SELECT HH_SIZE, COUNT(*) AS num_transactions FROM combined GROUP BY HH_SIZE ORDER BY HH_SIZE")
+    data = cursor.fetchall()
+
+    # Extract HH_SIZE and counts into separate lists
+    hh_sizes = [row[0].strip() for row in data]
+    print(hh_sizes)
+    counts = [row[1] for row in data]
+
+    # Plot bar graph
+    pyplot.bar(hh_sizes, counts, color='skyblue')
+    pyplot.xlabel('Household Size')
+    pyplot.ylabel('Number of Transactions')
+    pyplot.title('Number of Transactions by Household Size')
+    pyplot.xticks(hh_sizes)  # Set x-ticks to be the household sizes
+
+    # Convert plot to bytes and encode to base64
+    buffer = io.BytesIO()
+    pyplot.savefig(buffer, format='png')
+    buffer.seek(0)
+    graph_bytes = base64.b64encode(buffer.getvalue()).decode()
+    pyplot.close()
+    conn.close()
+
+    return render_template('part_5.html', graph_bytes=graph_bytes)
+
 
 if __name__ == '__main__':
     with app.app_context():
