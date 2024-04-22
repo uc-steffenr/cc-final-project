@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Lookup</title>
+</head>
+<body>
+    <h1>Data Lookup</h1>
+    <form action="/part_4" method="POST">
+        <label for="lookup_value">Enter Value to Look Up:</label>
+        <input type="text" id="lookup_value" name="lookup_value">
+        <button type="submit">Search</button>
+    </form>
+    <hr>
+    {% if columns and rows %}
+    <h2>Search Results:</h2>
+    <table border="1">
+        <tr>
+            {% for column in columns %}
+                <th>{{ column }}</th>
+            {% endfor %}
+        </tr>
+        {% for row in rows %}
+            <tr>
+                {% for value in row %}
+                    <td>{{ value }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+</body>
+</html>

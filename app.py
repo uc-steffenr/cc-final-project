@@ -41,7 +41,6 @@ def register_or_signin():
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
-        action = request.form.get('action', '')  # Get the value of 'action' parameter from the form data
 
         # Sign-in functionality: Check if user exists and password matches
         user = User.query.filter_by(username=username, email=email, password=password).first()
@@ -93,6 +92,25 @@ def part_3():
     conn.close()
     
     return render_template('part_3.html', columns=columns, rows=rows)
+
+@app.route('/part_4', methods=['GET', 'POST'])
+def part_4():
+    columns = []
+    rows = []
+    
+    if request.method == 'POST':
+        lookup_value = request.form['lookup_value']
+        conn = pyodbc.connect(connection_string)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'combined'")
+        columns = cursor.fetchall()
+        columns = [column[0] for column in columns]
+        cursor.execute(f"SELECT * FROM combined WHERE HSHD_NUM = {lookup_value}")
+        rows = cursor.fetchall()[:10]
+        rows = [list(row) for row in rows]
+        conn.close()
+        
+    return render_template('part_4.html', columns=columns, rows=rows)
 
 if __name__ == '__main__':
     with app.app_context():
